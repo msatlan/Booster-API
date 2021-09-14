@@ -15,7 +15,7 @@ export const UserSchema = new Schema<IUserDocument>(
     }
 );
 
-// save crypted user password to database
+// save encrypted user password to database
 UserSchema.pre('save', async function (next) {
     const user = this;
 

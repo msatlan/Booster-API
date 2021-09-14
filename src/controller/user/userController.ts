@@ -1,0 +1,144 @@
+import { Router, Response, Request } from 'express';
+import * as jwt from 'jsonwebtoken';
+import { secret } from '../../common/config/jwtSecret';
+import { verifyToken } from '../../common/middleware/userAuthorization';
+
+export class UserController {
+    public router = Router();
+
+    constructor(private userService: UserService) {
+        this.setRoutes();
+    }
+
+    public setRoutes() {
+        this.router.route('/getToken').get(this.getToken);
+
+        this.router.route('/register').post(this.register);
+        this.router.route('/login').post(this.login);
+        this.router.route('/logout').post(verifyToken, this.logout);
+
+        this.router.route('/find/').get(verifyToken, this.find);
+        this.router.route('/all').get(verifyToken, this.findAll);
+        this.router
+            .route('/:id')
+            .get(verifyToken, this.findById)
+            .delete(verifyToken, this.delete)
+            .put(verifyToken, this.update);
+    }
+
+    private getToken = async (req: Request, res: Response) => {
+        try {
+            console.log('token');
+            let token = jwt.sign(
+                {
+                    id: 'asdasd',
+                },
+                secret.secret,
+                // expires in 2 hours
+                { expiresIn: 60 * 60 * 2 }
+            );
+            res.status(200).send({ token });
+        } catch (error: any) {
+            console.log(error);
+        }
+    };
+
+    private findById = async (req: Request, res: Response) => {
+        try {
+            const result = await this.userService.findByIdAsync(req.params.id);
+            res.send(result);
+        } catch (ex: any) {
+            res.send(ex.message);
+        }
+    };
+
+    private findAll = async (req: Request, res: Response) => {
+        try {
+            const result = await this.userService.getAllAsync();
+
+            res.send(result);
+        } catch (ex) {
+            res.send(ex);
+        }
+    };
+
+    private find = async (req: Request, res: Response) => {
+        try {
+            const result = await this.userService.findAsync(req.query);
+            res.send(result);
+        } catch (ex) {
+            res.send(ex);
+        }
+    };
+
+    private register = async (req: Request, res: Response) => {
+        try {
+            let userInfo = await this.userService.addAsync(req.body);
+            res.status(201).send(userInfo);
+        } catch (ex: any) {
+            res.status(400).send(ex.message);
+        }
+    };
+
+    private delete = async (req: Request, res: Response) => {
+        try {
+            await this.userService.deleteAsync(req.params.id);
+            res.send('Delete successfull');
+        } catch (ex: any) {
+            res.status(404).send(ex.message);
+        }
+    };
+
+    private update = async (req: Request, res: Response) => {
+        try {
+            await this.userService.updateAsync(req.params.id, req.body);
+
+            res.send('Update successfull');
+        } catch (ex: any) {
+            res.status(404).send(ex.message);
+        }
+    };
+
+    private login = async (req: Request, res: Response) => {
+        const { email, password } = req.body;
+        try {
+            let userInfo = await this.userService.loginAsync(email, password);
+
+            // regenerate session after user has logged in as a security measure
+            req.session.regenerate((err) => {
+                if (err) {
+                    console.log(err);
+                }
+            });
+            req.session.userInfo = { ...userInfo };
+
+            res.status(200).json({
+                name: userInfo.name,
+                email: userInfo.email,
+                token: userInfo.token,
+            });
+        } catch (ex: any) {
+            console.log(ex);
+            res.status(500).send(ex.message);
+        }
+    };
+
+    private logout = async (req: Request, res: Response) => {
+        try {
+            if (req.session) {
+                req.session.destroy((err) => {
+                    if (err) {
+                        //log error
+                    }
+                    console.log('session destroyed');
+                    res.status(200).send('Logout successfull');
+                });
+            } else {
+                //log error
+            }
+        } catch (ex: any) {
+            console.log(ex);
+            res.status(500).send(ex.message);
+        }
+    };
+}
