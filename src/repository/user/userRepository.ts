@@ -71,12 +71,19 @@ class UserRepository implements IUserRepository {
     }
 
     async findOneAsync(email: string): Promise<IUserDocument | null> {
-        const result = await User.findOne({ email: email });
+        try {
+            const result = await User.findOne({ email: email });
 
-        if (!result) {
+            if (!result) {
+                return null;
+            }
+
+            return result;
+        } catch (ex: any) {
+            console.log(ex.message);
+
             return null;
         }
-        return result;
     }
 }
 

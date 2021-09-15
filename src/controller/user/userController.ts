@@ -73,16 +73,6 @@ class UserController {
         }
     };
 
-    private register = async (req: Request, res: Response) => {
-        try {
-            let userInfo = await this.userService.registerAsync(req.body);
-            this.handleSession(req, userInfo);
-            res.status(201).send(userInfo);
-        } catch (ex: any) {
-            res.status(400).send(ex.message);
-        }
-    };
-
     private delete = async (req: Request, res: Response) => {
         try {
             await this.userService.deleteAsync(req.params.id);
@@ -102,18 +92,20 @@ class UserController {
         }
     };
 
+    private register = async (req: Request, res: Response) => {
+        try {
+            let userInfo = await this.userService.registerAsync(req.body);
+            this.handleSession(req, userInfo);
+            res.status(201).send(userInfo);
+        } catch (ex: any) {
+            res.status(400).send(ex.message);
+        }
+    };
+
     private login = async (req: Request, res: Response) => {
         const { email, password } = req.body;
         try {
             let userInfo = await this.userService.loginAsync(email, password);
-
-            // regenerate session after user has logged in as a security measure
-            // req.session.regenerate((err) => {
-            //     if (err) {
-            //         console.log(err);
-            //     }
-            // });
-            // req.session.userInfo = { ...userInfo };
             this.handleSession(req, userInfo);
             res.status(200).json(userInfo);
         } catch (ex: any) {
