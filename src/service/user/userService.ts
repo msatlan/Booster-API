@@ -7,6 +7,8 @@ import * as jwt from 'jsonwebtoken';
 import { secret } from '../../common/config/jwtSecret';
 import { UserInfo } from '../../model/userInfo/userInfo';
 import { validatePasswordAsync } from '../../common/utils/userValidation';
+import UserRepository from '../../repository/user/userRepository';
+import { FilterQuery } from 'mongoose';
 
 class UserService extends BaseService implements IUserService {
     private repository: UserRepository;
@@ -17,25 +19,25 @@ class UserService extends BaseService implements IUserService {
     }
 
     async registerAsync(user: IUserDocument): Promise<IUserInfo> {
-        const newUser = new User(user);
-        let result = await this.repository.createAsync(newUser);
+        const userToAdd = new User(user);
+        let newUser = await this.repository.registerAsync(userToAdd);
 
-        if (!result) {
+        if (!newUser) {
             throw new Error('Failed to create user');
         }
 
         let token = jwt.sign(
             {
-                id: newUser._id,
+                id: newUser._id.toString(),
             },
             secret.secret,
             { expiresIn: 60 * 60 * 2 }
         );
 
         const userInfo = new UserInfo();
-        userInfo._id = user._id;
-        userInfo.name = user.name;
-        userInfo.email = user.email;
+        userInfo._id = newUser._id.toString();
+        userInfo.name = newUser.name;
+        userInfo.email = newUser.email;
         userInfo.token = token;
 
         return userInfo;
@@ -43,7 +45,7 @@ class UserService extends BaseService implements IUserService {
 
     async loginAsync(email: string, password: string): Promise<IUserInfo> {
         try {
-            const user = await this.repository.findOne(email);
+            const user = await this.repository.findOneAsync(email);
 
             if (!user) {
                 throw new Error('User not found!');
@@ -74,24 +76,57 @@ class UserService extends BaseService implements IUserService {
         }
     }
 
-    async getAllAsync(): Promise<IUserDocument[] | null> {
-        throw new Error('Method not implemented.');
+    public async findByIdAsync(id: string): Promise<IUserDocument | null> {
+        let result = await this.repository.getByIdAsync(id);
+
+        if (!result) {
+            throw new Error('Failed to fetch user');
+        }
+
+        return result;
     }
 
-    async findByIdAsync(id: string): Promise<IUserDocument | null> {
-        throw new Error('Method not implemented.');
+    public async getAllAsync(): Promise<IUserDocument[] | null> {
+        let result = await this.repository.getAllAsync();
+
+        if (!result) {
+            throw new Error('Failed to fetch users');
+        }
+
+        return result;
     }
 
-    async findAsync(filter: any): Promise<IUserDocument[] | null> {
-        throw new Error('Method not implemented.');
+    public async findAsync(filter: FilterQuery<IUserDocument>): Promise<IUserDocument[] | null> {
+        let result = await this.repository.findAsync(filter);
+
+        if (!result) {
+            throw new Error('Failed to fetch users');
+        }
+
+        return result;
     }
 
-    async deleteAsync(id: string): Promise<boolean> {
-        throw new Error('Method not implemented.');
+    public async deleteAsync(id: string): Promise<boolean> {
+        let result = await this.repository.deleteAsync(id);
+
+        if (!result) {
+            throw new Error('Failed to delete user');
+        }
+
+        return result;
     }
 
-    async updateAsync(id: string, model: IUserDocument | Partial<IUserDocument>): Promise<boolean> {
-        throw new Error('Method not implemented.');
+    public async updateAsync(
+        id: string,
+        user: IUserDocument | Partial<IUserDocument>
+    ): Promise<boolean> {
+        let result = await this.repository.updateAsync(id, user);
+
+        if (!result) {
+            throw new Error('Failed to update user');
+        }
+
+        return result;
     }
 }
 

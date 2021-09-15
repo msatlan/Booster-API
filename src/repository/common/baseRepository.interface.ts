@@ -1,6 +1,6 @@
 import { Document, FilterQuery } from 'mongoose';
 
-export interface IBaseRepository<T extends Document> {
+interface IBaseRepository<T extends Document> {
     getByIdAsync(id: string): Promise<T | null>;
 
     getAllAsync(): Promise<T[] | null>;
@@ -13,3 +13,5 @@ export interface IBaseRepository<T extends Document> {
 
     deleteAsync(id: string): Promise<boolean>;
 }
+
+export default IBaseRepository;

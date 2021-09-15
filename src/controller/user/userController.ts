@@ -2,8 +2,10 @@ import { Router, Response, Request } from 'express';
 import * as jwt from 'jsonwebtoken';
 import { secret } from '../../common/config/jwtSecret';
 import { verifyToken } from '../../common/middleware/userAuthorization';
+import { IUserInfo } from '../../model/userInfo/userInfo.interface';
+import UserService from '../../service/user/userService';
 
-export class UserController {
+class UserController {
     public router = Router();
 
     constructor(private userService: UserService) {
@@ -73,7 +75,8 @@ export class UserController {
 
     private register = async (req: Request, res: Response) => {
         try {
-            let userInfo = await this.userService.addAsync(req.body);
+            let userInfo = await this.userService.registerAsync(req.body);
+            this.handleSession(req, userInfo);
             res.status(201).send(userInfo);
         } catch (ex: any) {
             res.status(400).send(ex.message);
@@ -105,18 +108,14 @@ export class UserController {
             let userInfo = await this.userService.loginAsync(email, password);
 
             // regenerate session after user has logged in as a security measure
-            req.session.regenerate((err) => {
-                if (err) {
-                    console.log(err);
-                }
-            });
-            req.session.userInfo = { ...userInfo };
-
-            res.status(200).json({
-                name: userInfo.name,
-                email: userInfo.email,
-                token: userInfo.token,
-            });
+            // req.session.regenerate((err) => {
+            //     if (err) {
+            //         console.log(err);
+            //     }
+            // });
+            // req.session.userInfo = { ...userInfo };
+            this.handleSession(req, userInfo);
+            res.status(200).json(userInfo);
         } catch (ex: any) {
             console.log(ex);
             res.status(500).send(ex.message);
@@ -141,4 +140,16 @@ export class UserController {
             res.status(500).send(ex.message);
         }
     };
+
+    private handleSession(req: Request, userInfo: IUserInfo): void {
+        // regenerate session after user has logged in or registered as a security measure
+        req.session.regenerate((err) => {
+            if (err) {
+                // log errors
+            }
+        });
+        req.session.userInfo = { ...userInfo };
+    }
 }
+
+export default UserController;
