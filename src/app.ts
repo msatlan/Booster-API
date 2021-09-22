@@ -4,6 +4,8 @@ import cors from 'cors';
 import express from 'express';
 import session from 'express-session';
 import { responseHeaderConfig } from './common/config/responseHeaderConfig';
+import UserController from './controller/user/userController';
+import UserService from './service/user/userService';
 
 class App {
     public app: express.Application;
@@ -37,8 +39,8 @@ class App {
     }
 
     private setControllers() {
-        // const userController = new UserController(new UserService());
-        // this.app.use('/user', userController.router);
+        const userController = new UserController(new UserService());
+        this.app.use('/user', userController.router);
     }
 }
 
