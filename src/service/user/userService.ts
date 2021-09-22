@@ -9,6 +9,7 @@ import { UserInfo } from '../../model/userInfo/userInfo';
 import { validatePasswordAsync } from '../../common/utils/userValidation';
 import UserRepository from '../../repository/user/userRepository';
 import { FilterQuery } from 'mongoose';
+import moment from 'moment';
 
 class UserService extends BaseService implements IUserService {
     private repository: UserRepository;
@@ -23,7 +24,7 @@ class UserService extends BaseService implements IUserService {
         let newUser = await this.repository.registerAsync(userToAdd);
 
         if (!newUser) {
-            throw new Error('Failed to create user');
+            throw new Error('Failed to create news user');
         }
 
         let token = jwt.sign(
@@ -48,7 +49,7 @@ class UserService extends BaseService implements IUserService {
             const user = await this.repository.findOneAsync(email);
 
             if (!user) {
-                throw new Error('User not found!');
+                throw new Error('Invalid email or password');
             }
 
             if (await validatePasswordAsync(password, user.password)) {
@@ -65,14 +66,15 @@ class UserService extends BaseService implements IUserService {
                 userInfo.name = user.name;
                 userInfo.email = user.email;
                 userInfo.token = token;
+                userInfo.tokenExpirationTime = moment().add(2, 'hours');
 
                 return userInfo;
             } else {
-                throw new Error('Invalid username or password');
+                throw new Error('Invalid email or password');
             }
-        } catch (ex) {
+        } catch (ex: any) {
             console.log(ex);
-            throw new Error('There was an error attempting to login. Please try again later.');
+            throw new Error(ex.message);
         }
     }
 

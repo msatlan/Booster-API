@@ -1,3 +1,4 @@
+import { Moment } from 'moment';
 import { IUserInfo } from './userInfo.interface';
 
 export class UserInfo implements IUserInfo {
@@ -5,4 +6,5 @@ export class UserInfo implements IUserInfo {
     name: string;
     email: string;
     token: string;
+    tokenExpirationTime: Moment;
 }

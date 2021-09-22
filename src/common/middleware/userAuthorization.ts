@@ -1,5 +1,6 @@
 import { Response, Request, NextFunction } from 'express';
 import * as jwt from 'jsonwebtoken';
+import moment from 'moment';
 import { secret } from '../config/jwtSecret';
 
 export const verifyToken = (req: Request, res: Response, next: NextFunction) => {
@@ -17,6 +18,8 @@ export const verifyToken = (req: Request, res: Response, next: NextFunction) => 
     if (!token) {
         return res.status(401).send({ message: 'No token provided.' });
     }
+
+    //check if token has expired
 
     try {
         jwt.verify(token.toString(), secret.secret);

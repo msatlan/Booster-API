@@ -24,50 +24,73 @@ class UserRepository implements IUserRepository {
     }
 
     async getAllAsync(): Promise<IUserDocument[] | null> {
-        let result = await User.find({});
-
-        if (!result) {
-            return null;
-        }
-        return result;
-    }
-    async findAsync(filter: FilterQuery<IUserDocument>): Promise<IUserDocument[] | null> {
-        let result = await User.find(filter);
-
-        if (!result) {
-            return null;
-        }
-        return result;
-    }
-    async registerAsync(newUser: IUserDocument): Promise<IUserDocument | null> {
         try {
-            let result = await newUser.save();
+            let result = await User.find({});
 
-            if (result) {
-                return result;
-            } else {
+            if (!result) {
                 return null;
             }
-        } catch (error) {
+            return result;
+        } catch (ex: any) {
             // log error
             return null;
         }
     }
-    async updateAsync(id: string, user: IUserDocument | Partial<IUserDocument>): Promise<boolean> {
-        const result: IUserDocument | null = await User.findByIdAndUpdate(id, user);
 
-        if (!result) {
-            return false;
+    async findAsync(filter: FilterQuery<IUserDocument>): Promise<IUserDocument[] | null> {
+        try {
+            let result = await User.find(filter);
+
+            if (!result) {
+                return null;
+            }
+            return result;
+        } catch (ex: any) {
+            // log error
+            return null;
         }
-        return true;
     }
-    async deleteAsync(id: string): Promise<boolean> {
-        const result = await User.findByIdAndDelete(id);
 
-        if (!result) {
+    async registerAsync(newUser: IUserDocument): Promise<IUserDocument | null> {
+        try {
+            let result = await newUser.save();
+
+            if (!result) {
+                return null;
+            }
+            return result;
+        } catch (ex: any) {
+            // log error
+            return null;
+        }
+    }
+
+    async updateAsync(id: string, user: IUserDocument | Partial<IUserDocument>): Promise<boolean> {
+        try {
+            const result: IUserDocument | null = await User.findByIdAndUpdate(id, user);
+
+            if (!result) {
+                return false;
+            }
+            return true;
+        } catch (ex: any) {
+            // log error
             return false;
         }
-        return true;
+    }
+
+    async deleteAsync(id: string): Promise<boolean> {
+        try {
+            const result = await User.findByIdAndDelete(id);
+
+            if (!result) {
+                return false;
+            }
+            return true;
+        } catch (ex: any) {
+            // log error
+            return false;
+        }
     }
 
     async findOneAsync(email: string): Promise<IUserDocument | null> {
@@ -77,11 +100,9 @@ class UserRepository implements IUserRepository {
             if (!result) {
                 return null;
             }
-
             return result;
         } catch (ex: any) {
-            console.log(ex.message);
-
+            // log error
             return null;
         }
     }
