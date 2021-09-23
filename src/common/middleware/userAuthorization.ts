@@ -19,11 +19,16 @@ export const verifyToken = (req: Request, res: Response, next: NextFunction) => 
         return res.status(401).send({ message: 'No token provided.' });
     }
 
-    //check if token has expired
-
     try {
-        jwt.verify(token.toString(), secret.secret);
-        next();
+        jwt.verify(token.toString(), secret.secret, (err) => {
+            //check if token has expired or for other errors
+            if (err) {
+                console.log(err);
+                return res.status(401).send({ message: 'Token expired' });
+            }
+
+            next();
+        });
     } catch (ex) {
         res.send(ex);
     }

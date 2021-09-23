@@ -141,7 +141,6 @@ class UserController {
             }
         });
         req.session.userInfo = { ...userInfo };
-        req.session.save();
     }
 }
 
