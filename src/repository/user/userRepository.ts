@@ -1,9 +1,10 @@
 import { FilterQuery } from 'mongoose';
 import User from '../../model/common/user/user';
 import { IUserDocument } from '../../model/common/user/user.interface';
+import BaseRepository from '../common/baseRepository';
 import { IUserRepository } from './userRepository.interface';
 
-class UserRepository implements IUserRepository {
+class UserRepository extends BaseRepository implements IUserRepository {
     // TODO: implement this method if admin has the possibility to create new users
     async createAsync(newModel: IUserDocument): Promise<boolean> {
         throw new Error('Method not implemented.');

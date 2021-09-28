@@ -42,7 +42,6 @@
         "migrate-mongo": "^8.2.3",
         "moment": "^2.29.1",
         "mongoose": "^5.11.14",
-        "mongoose-query-parser": "^1.2.1",
         "winston": "^3.3.3"
     }
 }

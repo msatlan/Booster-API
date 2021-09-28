@@ -2,8 +2,9 @@ import RefreshToken from '../../model/common/refreshToken/refreshToken';
 import { IRefreshTokenDocument } from '../../model/common/refreshToken/refreshToken.interface';
 import crypto from 'crypto';
 import { IRefreshTokenRepository } from './refreshTokenRepository.interface';
+import BaseRepository from '../common/baseRepository';
 
-class RefreshTokenRepository implements IRefreshTokenRepository {
+class RefreshTokenRepository extends BaseRepository implements IRefreshTokenRepository {
     async getNewRefreshTokenAsync(token: string): Promise<string | null> {
         try {
             let result = await RefreshToken.findOne({ token: token });

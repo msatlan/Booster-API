@@ -12,7 +12,6 @@ import { FilterQuery } from 'mongoose';
 import { IRefreshTokenRepository } from '../../repository/refreshToken/refreshTokenRepository.interface';
 import { IUserRepository } from '../../repository/user/userRepository.interface';
 import RefreshTokenRepository from '../../repository/refreshToken/refreshTokenRepository';
-import { IRefreshTokenDocument } from '../../model/common/refreshToken/refreshToken.interface';
 
 class UserService extends BaseService implements IUserService {
     private repository: IUserRepository;

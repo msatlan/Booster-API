@@ -1,11 +1,12 @@
-// Common implementation for services goes here
+import path from 'path';
+import { Logger } from '../../common/utils/logger';
 
 class BaseService {
-    //protected logger;
+    protected logger;
 
     constructor() {
-        // const repositoryLogger = new Logger(path.basename(__filename), './logs/repository');
-        // this.logger = repositoryLogger.getLogger();
+        const serviceLogger = new Logger(path.basename(__filename), './logs/service');
+        this.logger = serviceLogger.getLogger();
     }
 }
 

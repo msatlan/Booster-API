@@ -4,12 +4,15 @@ import { secret } from '../../common/config/jwtSecret';
 import { verifyToken } from '../../common/middleware/userAuthorization';
 import { IUserInfo } from '../../model/common/userInfo/userInfo.interface';
 import UserService from '../../service/user/userService';
+import IUserService from '../../service/user/userService.interface';
 
 class UserController {
     public router = Router();
+    private userService: IUserService;
 
-    constructor(private userService: UserService) {
+    constructor(userService: IUserService) {
         this.setRoutes();
+        this.userService = userService;
     }
 
     public setRoutes() {
@@ -18,7 +21,7 @@ class UserController {
 
         this.router.route('/register').post(this.register);
         this.router.route('/login').post(this.login);
-        this.router.route('/logout').post(this.logout);
+        this.router.route('/logout').post(verifyToken, this.logout);
 
         this.router.route('/find/').get(verifyToken, this.find);
         this.router.route('/all').get(verifyToken, this.findAll);
@@ -119,8 +122,12 @@ class UserController {
         const { email, password } = req.body;
         try {
             let userInfo = await this.userService.loginAsync(email, password);
-            this.handleSession(req, userInfo);
-            res.status(200).json(userInfo);
+            if (userInfo) {
+                this.handleSession(req, userInfo);
+                res.status(200).json(userInfo);
+            } else {
+                res.status(500).send('Failed to login');
+            }
         } catch (ex: any) {
             console.log(ex);
             res.status(500).send(ex.message);
