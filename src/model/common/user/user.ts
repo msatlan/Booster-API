@@ -1,5 +1,5 @@
 import { model, Schema } from 'mongoose';
-import { hashPasswordAsync } from '../../common/utils/userValidation';
+import { hashPasswordAsync } from '../../../common/utils/userValidation';
 import { IUserDocument } from './user.interface';
 
 export const UserSchema = new Schema<IUserDocument>(

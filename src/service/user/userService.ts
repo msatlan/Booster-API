@@ -1,22 +1,45 @@
-import User from '../../model/user/user';
-import { IUserDocument } from '../../model/user/user.interface';
-import { IUserInfo } from '../../model/userInfo/userInfo.interface';
+import User from '../../model/common/user/user';
+import { IUserDocument } from '../../model/common/user/user.interface';
+import { IUserInfo } from '../../model/common/userInfo/userInfo.interface';
 import BaseService from '../common/baseService';
 import IUserService from './userService.interface';
 import * as jwt from 'jsonwebtoken';
 import { secret } from '../../common/config/jwtSecret';
-import { UserInfo } from '../../model/userInfo/userInfo';
+import { UserInfo } from '../../model/common/userInfo/userInfo';
 import { validatePasswordAsync } from '../../common/utils/userValidation';
 import UserRepository from '../../repository/user/userRepository';
 import { FilterQuery } from 'mongoose';
-import moment from 'moment';
+import { IRefreshTokenRepository } from '../../repository/refreshToken/refreshTokenRepository.interface';
+import { IUserRepository } from '../../repository/user/userRepository.interface';
+import RefreshTokenRepository from '../../repository/refreshToken/refreshTokenRepository';
+import { IRefreshTokenDocument } from '../../model/common/refreshToken/refreshToken.interface';
 
 class UserService extends BaseService implements IUserService {
-    private repository: UserRepository;
+    private repository: IUserRepository;
+    private refreshTokenRepository: IRefreshTokenRepository;
 
     constructor() {
         super();
         this.repository = new UserRepository();
+        this.refreshTokenRepository = new RefreshTokenRepository();
+    }
+    async refereshJwtTokenAsync(refreshToken: string, userId: string): Promise<IUserInfo | null> {
+        let newRefreshToken = await this.refreshTokenRepository.getNewRefreshTokenAsync(
+            refreshToken
+        );
+
+        if (newRefreshToken) {
+            let jwtToken = this.generateJwtToken(userId);
+
+            const userInfo = new UserInfo();
+            userInfo._id = userId;
+            userInfo.token = jwtToken;
+            userInfo.refreshToken = refreshToken;
+
+            return userInfo;
+        } else {
+            throw new Error('Unable to create new refresh token');
+        }
     }
 
     async registerAsync(user: IUserDocument): Promise<IUserInfo> {
@@ -27,19 +50,7 @@ class UserService extends BaseService implements IUserService {
             throw new Error('Failed to create news user');
         }
 
-        let token = jwt.sign(
-            {
-                id: newUser._id.toString(),
-            },
-            secret.secret,
-            { expiresIn: 60 * 60 * 2 }
-        );
-
-        const userInfo = new UserInfo();
-        userInfo._id = newUser._id.toString();
-        userInfo.token = token;
-
-        return userInfo;
+        return this.generateTokensAsync(newUser._id);
     }
 
     async loginAsync(email: string, password: string): Promise<IUserInfo> {
@@ -51,19 +62,7 @@ class UserService extends BaseService implements IUserService {
             }
 
             if (await validatePasswordAsync(password, user.password)) {
-                let token = jwt.sign(
-                    {
-                        id: user._id,
-                    },
-                    secret.secret,
-                    { expiresIn: 10 } // secs
-                );
-
-                const userInfo = new UserInfo();
-                userInfo._id = user._id.toString();
-                userInfo.token = token;
-
-                return userInfo;
+                return this.generateTokensAsync(user._id);
             } else {
                 throw new Error('Invalid email or password');
             }
@@ -94,7 +93,7 @@ class UserService extends BaseService implements IUserService {
     }
 
     public async findAsync(filter: FilterQuery<IUserDocument>): Promise<IUserDocument[] | null> {
-        let result = await this.repository.findAsync(filter);
+        let result = await this.repository.findAsync(filter, {});
 
         if (!result) {
             throw new Error('Failed to fetch users');
@@ -113,10 +112,7 @@ class UserService extends BaseService implements IUserService {
         return result;
     }
 
-    public async updateAsync(
-        id: string,
-        user: IUserDocument | Partial<IUserDocument>
-    ): Promise<boolean> {
+    public async updateAsync(id: string, user: IUserDocument): Promise<boolean> {
         let result = await this.repository.updateAsync(id, user);
 
         if (!result) {
@@ -124,6 +120,39 @@ class UserService extends BaseService implements IUserService {
         }
 
         return result;
+    }
+
+    private async generateTokensAsync(userId: string): Promise<IUserInfo> {
+        let token = this.generateJwtToken(userId);
+
+        let refreshToken: string = await this.refreshTokenRepository.createTokenWithUserIdAsync(
+            userId.toString()
+        );
+
+        const userInfo = new UserInfo();
+        userInfo._id = userId.toString();
+        userInfo.token = token;
+        userInfo.refreshToken = refreshToken;
+
+        return userInfo;
+    }
+
+    async logoutAsync(userId: string): Promise<boolean> {
+        // delete refresh token with user's id
+        let result = await this.refreshTokenRepository.findByUserIdAndDelete(userId);
+        return result;
+    }
+
+    private generateJwtToken(userId: string): string {
+        let token = jwt.sign(
+            {
+                id: userId,
+            },
+            secret.secret,
+            { expiresIn: 180 } // secs
+        );
+
+        return token;
     }
 }
 

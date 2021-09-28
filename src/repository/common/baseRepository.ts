@@ -1,6 +1,7 @@
 //import path from 'path';
 //import { Logger } from '../../common/utils/winstonLogger';
 
+// used for common implementation for all repository classes
 class BaseRepository {
     //protected logger;
 
