@@ -19,7 +19,8 @@
     12. nodemon - run and debug app in dev environment without manual restarting
 
 -   npm scripts:
-    start with: npm run start:dev
+    - install dependecies: npm i   
+    - start with: npm run start:dev
 
     -   npm script should be created to import vehicles to it's collection in database
 
