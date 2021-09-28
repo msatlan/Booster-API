@@ -38,5 +38,7 @@
     - user login/logout system
     - user password encryption
     - user authorization middleware - with json web token (with refresh tokens which are saved to db and are used to replace expired token)
+        - token is sent in request Authorization header, Bearer *token
+        - token returns to client in response body
     - session persistance in db
     - logging - in progress - implemented to base class, logging is divided based on error type and layer (ei. repositoryError, serviceInfo)
