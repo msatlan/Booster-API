@@ -1,6 +1,6 @@
 import { FilterQuery } from 'mongoose';
-import User from '../../model/user/user';
-import { IUserDocument } from '../../model/user/user.interface';
+import User from '../../model/common/user/user';
+import { IUserDocument } from '../../model/common/user/user.interface';
 import { IUserRepository } from './userRepository.interface';
 
 class UserRepository implements IUserRepository {

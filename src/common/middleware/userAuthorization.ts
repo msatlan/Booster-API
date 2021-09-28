@@ -1,6 +1,5 @@
 import { Response, Request, NextFunction } from 'express';
 import * as jwt from 'jsonwebtoken';
-import moment from 'moment';
 import { secret } from '../config/jwtSecret';
 
 export const verifyToken = (req: Request, res: Response, next: NextFunction) => {
@@ -24,7 +23,10 @@ export const verifyToken = (req: Request, res: Response, next: NextFunction) => 
             //check if token has expired or for other errors
             if (err) {
                 console.log(err);
-                return res.status(401).send({ message: 'Token expired' });
+                if (err.name == 'TokenExpiredError') {
+                    return res.status(401).send({ message: 'Token expired' });
+                }
+                return res.status(401);
             }
 
             next();

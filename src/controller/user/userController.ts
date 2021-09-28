@@ -2,7 +2,7 @@ import { Router, Response, Request } from 'express';
 import * as jwt from 'jsonwebtoken';
 import { secret } from '../../common/config/jwtSecret';
 import { verifyToken } from '../../common/middleware/userAuthorization';
-import { IUserInfo } from '../../model/userInfo/userInfo.interface';
+import { IUserInfo } from '../../model/common/userInfo/userInfo.interface';
 import UserService from '../../service/user/userService';
 
 class UserController {
@@ -13,11 +13,12 @@ class UserController {
     }
 
     public setRoutes() {
+        this.router.route('/refreshToken').post(this.refreshJwtToken);
         this.router.route('/getToken').get(this.getToken);
 
         this.router.route('/register').post(this.register);
         this.router.route('/login').post(this.login);
-        this.router.route('/logout').post(verifyToken, this.logout);
+        this.router.route('/logout').post(this.logout);
 
         this.router.route('/find/').get(verifyToken, this.find);
         this.router.route('/all').get(verifyToken, this.findAll);
@@ -28,6 +29,18 @@ class UserController {
             .put(verifyToken, this.update);
     }
 
+    private refreshJwtToken = async (req: Request, res: Response) => {
+        try {
+            let refreshToken = req.body.refreshToken;
+            let userId = req.body.userId;
+            let userInfo = await this.userService.refereshJwtTokenAsync(refreshToken, userId);
+            res.status(200).send(userInfo);
+        } catch (error: any) {
+            console.log(error);
+        }
+    };
+
+    // testing purposes
     private getToken = async (req: Request, res: Response) => {
         try {
             console.log('token');
@@ -116,16 +129,21 @@ class UserController {
 
     private logout = async (req: Request, res: Response) => {
         try {
-            if (req.session) {
-                req.session.destroy((err) => {
-                    if (err) {
-                        //log error
-                    }
-                    console.log('session destroyed');
-                    res.status(200).send('Logout successfull');
-                });
+            let result = await this.userService.logoutAsync(req.body.userId);
+            if (result) {
+                if (req.session) {
+                    req.session.destroy((err) => {
+                        if (err) {
+                            //log error
+                        }
+                        console.log('session destroyed');
+                        res.status(200).send('Logout successfull');
+                    });
+                } else {
+                    //log error
+                }
             } else {
-                //log error
+                res.status(500).send('Failed to log out');
             }
         } catch (ex: any) {
             console.log(ex);

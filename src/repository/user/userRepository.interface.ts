@@ -1,4 +1,4 @@
-import { IUserDocument } from '../../model/user/user.interface';
+import { IUserDocument } from '../../model/common/user/user.interface';
 import IBaseRepository from '../common/baseRepository.interface';
 
 export interface IUserRepository extends IBaseRepository<IUserDocument> {
