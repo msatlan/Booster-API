@@ -1,8 +1,9 @@
 import { dbConnection } from './common/config/dbConfig';
-import bodyParser from 'body-parser';
+//import bodyParser from 'body-parser';
 import cors from 'cors';
 import express from 'express';
 import session from 'express-session';
+import MongoStore from 'connect-mongo';
 import { responseHeaderConfig } from './common/config/responseHeaderConfig';
 import UserController from './controller/user/userController';
 import UserService from './service/user/userService';
@@ -19,8 +20,7 @@ class App {
 
     private initMiddleware() {
         responseHeaderConfig(this.app);
-        this.app.use(bodyParser.json({ limit: '50mb' }));
-        this.app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }));
+        this.app.use(express.json());
         this.app.use(cors());
         this.app.use(
             session({
@@ -34,6 +34,10 @@ class App {
                     //maxAge: 1*60*60*1000
                 },
                 name: 'id',
+                store: MongoStore.create({
+                    mongoUrl: 'mongodb://localhost:27017/boosterDb',
+                    ttl: 2 * 60 * 60, // session persists in db for 2 hours
+                }),
             })
         );
     }

@@ -37,8 +37,6 @@ class UserService extends BaseService implements IUserService {
 
         const userInfo = new UserInfo();
         userInfo._id = newUser._id.toString();
-        userInfo.name = newUser.name;
-        userInfo.email = newUser.email;
         userInfo.token = token;
 
         return userInfo;
@@ -58,15 +56,12 @@ class UserService extends BaseService implements IUserService {
                         id: user._id,
                     },
                     secret.secret,
-                    { expiresIn: 60 * 60 * 2 }
+                    { expiresIn: 10 } // secs
                 );
 
                 const userInfo = new UserInfo();
-                userInfo._id = user._id;
-                userInfo.name = user.name;
-                userInfo.email = user.email;
+                userInfo._id = user._id.toString();
                 userInfo.token = token;
-                userInfo.tokenExpirationTime = moment().add(2, 'hours');
 
                 return userInfo;
             } else {
